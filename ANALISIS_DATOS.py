@@ -14,6 +14,13 @@ import openpyxl
 from datetime import datetime
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
+# Esto debe ser lo primero después de importar Streamlit
+st.set_page_config(
+    page_title="📊 Insights Automáticos",  # Título que aparecerá en la pestaña del navegador
+    page_icon="📊"  # Emoji como favicon (puedes reemplazarlo con una ruta de archivo de imagen)
+)
+
+
 # Personalizar el estilo
 st.markdown("""
     <style>
@@ -58,8 +65,10 @@ def load_data(file):
         st.error("Tipo de archivo no soportado. Por favor, carga un archivo CSV o XLSX.")
         return None
 
+
 # Interfaz de usuario para cargar el archivo
-st.title('Reporte de Insights de Datos Por: 👨‍💻 Juancito Peña V')
+st.title('📊 Reporte de Insights de Datos Por: 👨‍💻 Juancito Peña V')
+
 uploaded_file = st.sidebar.file_uploader("Carga tu archivo de ventas", type=['csv', 'xlsx'])
 
 if uploaded_file is not None:
@@ -102,28 +111,34 @@ if uploaded_file is not None:
                     st.warning("La columna 'Localidad' no se encuentra en el archivo.")
                     venta_por_localidad = pd.DataFrame()
 
+
                 # Cálculo de KPIs con datos filtrados
                 num_vendedores = df_filtrado['Vendedor'].nunique()
-                num_pedidos = df_filtrado['NoPedidoStr'].nunique() 
+                num_pedidos = df_filtrado['NoPedidoStr'].nunique()
                 num_clientes = df_filtrado['Cliente'].nunique()
                 num_productos = df_filtrado['Descripcion'].nunique()
                 total_cantidad = df_filtrado['Cantidad'].sum()
                 total_monto_vendido = df_filtrado['Total Vendido'].sum()
 
-                # Crear un DataFrame con los KPIs
+                # Crear un DataFrame con los KPIs en una fila, aplicando estilos a los números
                 kpi_data = {
-                    'Número de Vendedores': [num_vendedores],
-                    'Número de Pedidos': [num_pedidos],
-                    'Número de Clientes': [num_clientes],
-                    'Número de Productos': [num_productos],
-                    'Total Cantidad Vendida': [total_cantidad],
-                    'Total Monto Vendido': [f'${total_monto_vendido:,.2f}']
+                    '📊 Número de Vendedores': [f"<div style='text-align:center; font-size:20px;'>{num_vendedores}</div>"],
+                    '📦 Número de Pedidos': [f"<div style='text-align:center; font-size:20px;'>{num_pedidos}</div>"],
+                    '👥 Número de Clientes': [f"<div style='text-align:center; font-size:20px;'>{num_clientes}</div>"],
+                    '🛍️ Número de Productos': [f"<div style='text-align:center; font-size:20px;'>{num_productos}</div>"],
+                    '📉 Total Cantidad Vendida': [f"<div style='text-align:center; font-size:20px;'>{total_cantidad}</div>"],
+                    '💰 Total Monto Vendido': [f"<div style='text-align:center; font-size:20px;'>${total_monto_vendido:,.2f}</div>"]
                 }
+
+                # Definir el DataFrame df_kpis
                 df_kpis = pd.DataFrame(kpi_data)
 
-                # Mostrar la tabla de KPIs
+                # Mostrar la tabla de KPIs en Streamlit con estilos aplicados
                 st.write('**Resumen de KPIs**')
-                st.dataframe(df_kpis, use_container_width=True)
+
+                # Mostrar la tabla de KPIs con HTML para aplicar estilos personalizados
+                st.markdown(df_kpis.to_html(escape=False, index=False), unsafe_allow_html=True)
+
 
                 st.subheader('Tablas de Resumen')
                 st.write('Ventas por Cliente')
@@ -1107,3 +1122,75 @@ if uploaded_file is not None:
                 analizar_producto(producto)
                 analizar_cliente(cliente)            
                                             
+
+
+                
+
+       
+
+                # Cargar FontAwesome
+                st.markdown('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">', unsafe_allow_html=True)
+
+               
+
+                # Título para la sección final
+                st.markdown("<h1 style='text-align: center; color: #fffa65;'>QUIÉN SOY?</h1>", unsafe_allow_html=True)
+
+
+                # Mostrar la foto centrada
+                st.markdown("""
+                    <div style="text-align: center;">
+                        <img src="https://raw.githubusercontent.com/JUANCITOPENA/ANALISIS_AUTOMATIZADO_PYTHON/main/JuancitoFoto.png" 
+                            alt="Foto de Juancito Peña" 
+                            style="width: 200px; height: auto; border-radius: 50%;">
+                    </div>
+                """, unsafe_allow_html=True)
+                
+               # Texto de presentación con estilo personalizado
+                st.markdown("""
+                   <p style='font-size: 25px; color: #ecf0f1; text-align: justify;'>
+                    Mi nombre es <strong>Juancito Peña V</strong>, soy <strong>ingeniero en Sistemas y Computación</strong> 💻, con una Especialidad en <strong>Desarrollo de Software</strong> 🖥️, y una Maestría en <strong>Sistemas Mención Gerencial</strong> 🎓. 
+                    Actualmente estoy cursando una Maestría en <strong>Ciencia de Datos para Negocios</strong> 📊 (Big Data & Business Analytics). 
+                    He realizado varios cursos y certificaciones, soy un amante de la <strong>Tecnología</strong> 🚀, de los <strong>Datos</strong> 📈 y de la <strong>Programación</strong> 👨‍💻. 
+                    Creo en el poder de la tecnología para aportar valor a las personas, a las empresas y a la educación 🎓.
+                    </p>
+                    <p style='font-size: 25px; color: #ecf0f1; text-align: justify;'>
+                    Mis Habilidades van desde Uso con en <strong>SQL</strong> 💾, <strong>Power BI</strong> 📊 y <strong>Python</strong> 🐍 | <strong>Desarrollo de Software</strong> (HTML, CSS, JS, REACT, PHP, C#) 💻, SQL | <strong>Soy Instructor de Grado Universitario</strong> 👨‍🏫, <strong>Padre</strong> 👨‍👩‍👧‍👦 y <strong>Amigo</strong> 🤝.
+                   </p>
+                </p>
+                """, unsafe_allow_html=True)
+
+
+
+               # Iconos de redes sociales en línea horizontal
+                st.markdown("""
+                <div style="text-align: center;">
+                    <a href="https://www.linkedin.com/in/tu-perfil" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-linkedin" style="font-size: 48px;"></i>
+                    </a>
+                    <a href="https://www.youtube.com/channel/tu-canal" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-youtube" style="font-size: 48px;"></i>
+                    </a>
+                    <a href="https://github.com/tu-perfil" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-github" style="font-size: 48px;"></i>
+                    </a>
+                    <a href="https://twitter.com/tu-perfil" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-twitter" style="font-size: 48px;"></i>
+                    </a>
+                    <a href="https://www.facebook.com/tu-perfil" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-facebook" style="font-size: 48px;"></i>
+                    </a>
+                    <a href="https://www.instagram.com/tu-perfil" target="_blank" style="text-decoration: none; color: #fff200; margin: 0 10px;">
+                        <i class="fab fa-instagram" style="font-size: 48px;"></i>
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
+
+
+               # Mensaje de contacto con estilo personalizado
+                st.markdown("""
+                    <p style='font-size: 25px; color: #ecf0f1; text-align: center; margin-top: 20px;'>
+                    Si te interesa este Reporte y tenerlo en tus proyectos, contáctame al: 
+                    <a href="mailto:juancito.pena@gmail.com" style='color: #1f77b4;'>juancito.pena@gmail.com</a>. Acordemos un precio.
+                    </p>
+                """, unsafe_allow_html=True)
