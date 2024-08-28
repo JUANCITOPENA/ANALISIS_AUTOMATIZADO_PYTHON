@@ -25,7 +25,7 @@ st.markdown("""
             font-weight: bold;
         }
         .stDataFrame {
-            font-size: 14px;
+            font-size: 18px;
             color: #333;
         }
         .stBarChart {
@@ -247,25 +247,6 @@ if uploaded_file is not None:
 
 
 
-                    # Crear una columna para el mes
-                    df_filtrado['Mes'] = df_filtrado['FechaPedidoServerN'].dt.to_period('M').astype(str)
-
-                    # Gráfico de Ventas Totales por Mes
-                    fig_mes, ax_mes = plt.subplots(figsize=(12, 6))
-                    df_mes = df_filtrado.groupby('Mes')['Total Vendido'].sum().reset_index()
-                    sns.barplot(x='Mes', y='Total Vendido', data=df_mes, ax=ax_mes, palette="coolwarm")
-                    ax_mes.set_title('Ventas Totales por Mes')
-                    ax_mes.set_xlabel('Mes')
-                    ax_mes.set_ylabel('Total Vendido')
-                    ax_mes.tick_params(axis='x', rotation=45)
-
-                    # Añadir etiquetas de monto en cada barra
-                    for p in ax_mes.patches:
-                        ax_mes.annotate(f'${p.get_height():,.0f}', (p.get_x() + p.get_width() / 2., p.get_height()),
-                                        ha='center', va='center', fontsize=10, color='black', xytext=(0, 10),
-                                        textcoords='offset points')
-                    st.pyplot(fig_mes)
-                    
                     # Supongamos que df es el DataFrame original
                     # Convertir la columna 'FechaPedidoServerN' a formato datetime
                     df['FechaPedidoServerN'] = pd.to_datetime(df['FechaPedidoServerN'], format='%d/%m/%Y')
