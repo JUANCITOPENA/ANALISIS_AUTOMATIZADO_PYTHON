@@ -58,22 +58,31 @@ Esto abrirá una aplicación web en tu navegador donde podrás interactuar con e
 
 Descripción del Script
 El script realiza las siguientes acciones:
+## Descripción del Análisis
 
-Filtra los 30 principales clientes, productos y vendedores basándose en el total vendido.
-Calcula el total acumulado y el porcentaje acumulado para cada elemento.
-Clasifica los elementos en categorías A, B y C usando el análisis Pareto.
-Genera gráficos de Pareto para clientes, productos y vendedores.
-Aplica estilos a las tablas en Streamlit para resaltar la clasificación ABC.
-Análisis de Clientes
-Gráfico de Pareto: Muestra el total vendido y el porcentaje acumulado para los 30 mejores clientes.
-Tabla Estilizada: Resalta la clasificación ABC de cada cliente.
-Análisis de Productos
-Gráfico de Pareto: Muestra el total vendido y el porcentaje acumulado para los 30 principales productos.
-Tabla Estilizada: Resalta la clasificación ABC de cada producto.
-Análisis de Vendedores
-Gráfico de Pareto: Muestra el total vendido y el porcentaje acumulado para los 30 principales vendedores.
-Tabla Estilizada: Resalta la clasificación ABC de cada vendedor.
-Contribuciones
+1. **Filtra los 30 principales clientes, productos y vendedores** basándose en el total vendido.
+2. **Calcula el total acumulado y el porcentaje acumulado** para cada elemento.
+3. **Clasifica los elementos en categorías A, B y C** usando el análisis Pareto.
+4. **Genera gráficos de Pareto** para clientes, productos y vendedores.
+5. **Aplica estilos a las tablas en Streamlit** para resaltar la clasificación ABC.
+
+### Análisis de Clientes
+
+- **Gráfico de Pareto**: Muestra el total vendido y el porcentaje acumulado para los 30 mejores clientes.
+- **Tabla Estilizada**: Resalta la clasificación ABC de cada cliente.
+
+### Análisis de Productos
+
+- **Gráfico de Pareto**: Muestra el total vendido y el porcentaje acumulado para los 30 principales productos.
+- **Tabla Estilizada**: Resalta la clasificación ABC de cada producto.
+
+### Análisis de Vendedores
+
+- **Gráfico de Pareto**: Muestra el total vendido y el porcentaje acumulado para los 30 principales vendedores.
+- **Tabla Estilizada**: Resalta la clasificación ABC de cada vendedor.
+
+## Contribuciones
+
 Si deseas contribuir a este proyecto, por favor realiza un fork del repositorio y envía tus pull requests. Asegúrate de seguir las buenas prácticas de codificación y de probar tus cambios antes de enviarlos.
 
 Licencia
