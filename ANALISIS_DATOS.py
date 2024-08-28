@@ -12,6 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import base64
 import openpyxl
 from datetime import datetime
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 # Personalizar el estilo
 st.markdown("""
@@ -482,6 +483,63 @@ if uploaded_file is not None:
                     st.pyplot(fig_condicion_pago)
                     
   
+  
+
+
+                    # Verificar que las columnas necesarias están presentes
+                    required_columns = ['Descripcion', 'FechaPedidoServerN', 'Cantidad']
+                    missing_columns = [col for col in required_columns if col not in df.columns]
+                    if missing_columns:
+                        raise ValueError(f"Faltan las siguientes columnas en el archivo CSV: {', '.join(missing_columns)}")
+
+                    # Convertir 'FechaPedidoServerN' a datetime si no lo es ya
+                    df['FechaPedidoServerN'] = pd.to_datetime(df['FechaPedidoServerN'], errors='coerce')
+
+                    # Eliminar filas con fechas nulas después de la conversión
+                    df = df.dropna(subset=['FechaPedidoServerN'])
+
+                    # Crear una columna para el mes y año
+                    df['Mes'] = df['FechaPedidoServerN'].dt.to_period('M')
+
+                    # Crear una tabla pivote de productos y cantidades por mes
+                    tabla_pivote = df.pivot_table(index='Descripcion', columns='Mes', values='Cantidad', aggfunc='sum', fill_value=0)
+
+                    # Proyección de ventas futuras utilizando una media móvil simple de 3 meses
+                    ventas_mes = df.groupby('Mes')['Cantidad'].sum()
+                    proyeccion = ventas_mes.rolling(window=3).mean().shift(-1)
+
+                    # Rellenar la proyección para los meses faltantes hasta el 31 de diciembre
+                    meses_futuros = pd.date_range(start=df['FechaPedidoServerN'].max(), end='2024-12-31', freq='M').to_period('M')
+                    for mes in meses_futuros:
+                        if mes not in proyeccion.index:
+                            proyeccion.loc[mes] = proyeccion.iloc[-1]  # Utilizar la última proyección conocida para los meses futuros
+
+                    # Crear un gráfico de la proyección de ventas
+                    plt.figure(figsize=(12, 6))
+                    plt.plot(ventas_mes.index.astype(str), ventas_mes.values, label='Ventas Históricas', marker='o')
+                    plt.plot(proyeccion.index.astype(str), proyeccion.values, label='Proyección de Ventas', linestyle='--', marker='x')
+                    plt.title('Proyección de Ventas Mensuales')
+                    plt.xlabel('Mes')
+                    plt.ylabel('Cantidad Vendida')
+                    plt.legend()
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.tight_layout()
+                    plt.show()
+
+                    # Añadir la proyección a la tabla pivote
+                    tabla_pivote = tabla_pivote.join(proyeccion.rename('Proyección'), how='outer')
+
+                    # Mostrar la tabla pivote
+                    print(tabla_pivote)
+                   
+  
+  
+  
+  
+  
+  
+  
                     # --- Análisis ABC de los 30 Mejores Clientes ---
 
                     # Filtrar los 30 mejores clientes basados en Total Vendido
@@ -776,8 +834,37 @@ if uploaded_file is not None:
                     st.dataframe(styled_df_vendedores)
 
                   
-                                                        
-                    # Supongamos que df_filtrado ya está filtrado y contiene los datos necesarios
+                      
+                     # Verificar si la columna 'FechaPedidoServerN' está en el DataFrame
+                    if 'FechaPedidoServerN' in df.columns:
+                        # Asegurarse de que la columna 'FechaPedidoServerN' es de tipo datetime
+                        df['FechaPedidoServerN'] = pd.to_datetime(df['FechaPedidoServerN'])
+                        
+                        # Crear columna de mes
+                        df['Mes'] = df['FechaPedidoServerN'].dt.month_name()
+
+                        # Agrupar ventas por mes
+                        df_mes = df.groupby('Mes')['Total Vendido'].sum().reset_index().sort_values('Total Vendido', ascending=False)
+
+                        st.subheader('Ventas Estacionales por Mes')
+                        st.dataframe(df_mes, use_container_width=True)
+
+                        # Gráfico de barras para ventas por mes
+                        fig_mes, ax_mes = plt.subplots(figsize=(12, 6))
+                        sns.barplot(x='Mes', y='Total Vendido', data=df_mes, ax=ax_mes, palette="summer")
+                        ax_mes.set_title('Ventas Totales por Mes')
+                        ax_mes.set_xlabel('Mes')
+                        ax_mes.set_ylabel('Total Vendido')
+                        ax_mes.tick_params(axis='x', rotation=45)
+
+                        # Añadir etiquetas de monto en cada barra
+                        for p in ax_mes.patches:
+                            ax_mes.annotate(f'${p.get_height():,.0f}', (p.get_x() + p.get_width() / 2., p.get_height()),
+                                            ha='center', va='center', fontsize=10, color='black', xytext=(0, 10),
+                                            textcoords='offset points')
+                        st.pyplot(fig_mes)
+                    else:
+                        st.warning("La columna 'FechaPedidoServerN' no se encuentra en el archivo.")
 
                     # Configuración global para ajustar el tamaño de las etiquetas y los títulos
                     plt.rc('axes', titlesize=8)   # Tamaño del título de los gráficos
@@ -883,6 +970,140 @@ if uploaded_file is not None:
                     ax.set_ylabel('Total Vendido', labelpad=15)
                     ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
                     plt.tight_layout()
-                    st.pyplot(fig)
+                    st.pyplot(fig)  
+                    
 
-                   
+               # Convertir la columna 'FechaPedidoServerN' a formato datetime
+                df['FechaPedidoServerN'] = pd.to_datetime(df['FechaPedidoServerN'], format='%d/%m/%Y')
+
+                # Crear una columna para el mes y año
+                df['Mes'] = df['FechaPedidoServerN'].dt.to_period('M')
+
+                # Mostrar una lista de productos y clientes disponibles en el sidebar
+                productos_disponibles = df['Descripcion'].unique()
+                clientes_disponibles = df['Cliente'].unique()
+
+                # Selección de producto y cliente
+                producto = st.sidebar.selectbox('Selecciona el Producto', options=productos_disponibles)
+                cliente = st.sidebar.selectbox('Selecciona el Cliente', options=clientes_disponibles)
+
+                # Análisis para el producto seleccionado
+                def analizar_producto(producto):
+                    # Agrupar por mes y producto, y sumar las ventas
+                    df_producto_mensual = df.groupby(['Descripcion', 'Mes'])['Total Vendido'].sum().reset_index()
+
+                    # Filtrar datos para el producto seleccionado
+                    df_producto = df_producto_mensual[df_producto_mensual['Descripcion'] == producto]
+
+                    # Verifica si hay suficientes datos
+                    if df_producto.shape[0] >= 12:  # Necesitamos al menos 12 meses de datos
+                        # Establecer 'Mes' como el índice
+                        df_producto.set_index('Mes', inplace=True)
+                        df_producto.index = df_producto.index.to_timestamp()
+                        
+                        # Verifica si hay suficientes datos para estacionalidad
+                        if len(df_producto) >= 24:
+                            # Usar estacionalidad solo si hay suficientes datos
+                            model = ExponentialSmoothing(df_producto['Total Vendido'], seasonal='add', seasonal_periods=12)
+                        else:
+                            # Usar un modelo sin estacionalidad si hay menos de 24 meses
+                            model = ExponentialSmoothing(df_producto['Total Vendido'], trend='add', seasonal=None)
+                        
+                        model_fit = model.fit()
+                        
+                        # Pronóstico
+                        forecast_steps = 12  # Proyección para los próximos 12 meses
+                        forecast_index = pd.date_range(start=df_producto.index[-1] + pd.DateOffset(months=1), periods=forecast_steps, freq='M')
+                        forecast = model_fit.forecast(steps=forecast_steps)
+                        
+                        # Crear una tabla pivotante
+                        df_pivot = df_producto.copy()
+                        df_pivot = df_pivot.reset_index()
+                        df_pivot = df_pivot.rename(columns={'Total Vendido': 'Ventas Actuales'})
+                        
+                        # Añadir proyección al DataFrame
+                        df_forecast = pd.DataFrame({'Mes': forecast_index, 'Proyección': forecast})
+                        df_pivot = pd.concat([df_pivot, df_forecast], ignore_index=True)
+                        df_pivot.set_index('Mes', inplace=True)
+                        
+                        # Mostrar la tabla pivotante en Streamlit
+                        st.write('**Proyecciones de Ventas por Mes**')
+                        st.dataframe(df_pivot, use_container_width=True)
+
+                        # Gráfico de las ventas actuales y la proyección
+                        fig, ax = plt.subplots(figsize=(12, 6))
+                        ax.plot(df_producto.index, df_producto['Total Vendido'], label='Ventas Actuales', marker='o')
+                        ax.plot(forecast_index, forecast, label='Proyección', marker='o', linestyle='--')
+                        ax.set_title(f'Proyección de Ventas para {producto}', fontsize=16)
+                        ax.set_xlabel('Fecha', fontsize=12)
+                        ax.set_ylabel('Total Vendido', fontsize=12)
+                        ax.legend()
+                        ax.grid(True)
+                        
+                        # Mostrar el gráfico en Streamlit
+                        st.pyplot(fig)
+                    else:
+                        st.error(f"No hay suficientes datos para el producto {producto} para realizar la proyección.")
+
+                # Análisis para el cliente seleccionado
+                def analizar_cliente(cliente):
+                    # Agrupar por mes y cliente, y sumar las ventas
+                    df_cliente_mensual = df.groupby(['Cliente', 'Mes'])['Total Vendido'].sum().reset_index()
+
+                    # Filtrar datos para el cliente seleccionado
+                    df_cliente = df_cliente_mensual[df_cliente_mensual['Cliente'] == cliente]
+
+                    # Verifica si hay suficientes datos
+                    if df_cliente.shape[0] >= 12:  # Necesitamos al menos 12 meses de datos
+                        # Establecer 'Mes' como el índice
+                        df_cliente.set_index('Mes', inplace=True)
+                        df_cliente.index = df_cliente.index.to_timestamp()
+                        
+                        # Verifica si hay suficientes datos para estacionalidad
+                        if len(df_cliente) >= 24:
+                            # Usar estacionalidad solo si hay suficientes datos
+                            model = ExponentialSmoothing(df_cliente['Total Vendido'], seasonal='add', seasonal_periods=12)
+                        else:
+                            # Usar un modelo sin estacionalidad si hay menos de 24 meses
+                            model = ExponentialSmoothing(df_cliente['Total Vendido'], trend='add', seasonal=None)
+                        
+                        model_fit = model.fit()
+                        
+                        # Pronóstico
+                        forecast_steps = 12  # Proyección para los próximos 12 meses
+                        forecast_index = pd.date_range(start=df_cliente.index[-1] + pd.DateOffset(months=1), periods=forecast_steps, freq='M')
+                        forecast = model_fit.forecast(steps=forecast_steps)
+                        
+                        # Crear una tabla pivotante
+                        df_pivot = df_cliente.copy()
+                        df_pivot = df_pivot.reset_index()
+                        df_pivot = df_pivot.rename(columns={'Total Vendido': 'Ventas Actuales'})
+                        
+                        # Añadir proyección al DataFrame
+                        df_forecast = pd.DataFrame({'Mes': forecast_index, 'Proyección': forecast})
+                        df_pivot = pd.concat([df_pivot, df_forecast], ignore_index=True)
+                        df_pivot.set_index('Mes', inplace=True)
+                        
+                        # Mostrar la tabla pivotante en Streamlit
+                        st.write('**Proyecciones de Ventas por Cliente**')
+                        st.dataframe(df_pivot, use_container_width=True)
+
+                        # Gráfico de las ventas actuales y la proyección
+                        fig, ax = plt.subplots(figsize=(12, 6))
+                        ax.plot(df_cliente.index, df_cliente['Total Vendido'], label='Ventas Actuales', marker='o')
+                        ax.plot(forecast_index, forecast, label='Proyección', marker='o', linestyle='--')
+                        ax.set_title(f'Proyección de Ventas para el Cliente {cliente}', fontsize=16)
+                        ax.set_xlabel('Fecha', fontsize=12)
+                        ax.set_ylabel('Total Vendido', fontsize=12)
+                        ax.legend()
+                        ax.grid(True)
+                        
+                        # Mostrar el gráfico en Streamlit
+                        st.pyplot(fig)
+                    else:
+                        st.error(f"No hay suficientes datos para el cliente {cliente} para realizar la proyección.")
+
+                # Llamar a las funciones de análisis
+                analizar_producto(producto)
+                analizar_cliente(cliente)            
+                                            

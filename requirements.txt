@@ -1,7 +1,8 @@
 streamlit
 pandas
 matplotlib
+plotly
 seaborn
 reportlab
 openpyxl
-plotly
+statsmodels
